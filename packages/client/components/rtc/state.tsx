@@ -17,6 +17,7 @@ import { useState } from "@revolt/state";
 import { Voice as VoiceSettings } from "@revolt/state/stores/Voice";
 import { VoiceCallCardContext } from "@revolt/ui/components/features/voice/callCard/VoiceCallCard";
 
+import { CONFIGURATION } from "@revolt/common";
 import { InRoom } from "./components/InRoom";
 import { RoomAudioManager } from "./components/RoomAudioManager";
 
@@ -113,8 +114,13 @@ class Voice {
       if (this.speakingPermission)
         room.localParticipant.setMicrophoneEnabled(true).then((track) => {
           this.#setMicrophone(typeof track !== "undefined");
-          if (this.#settings.rnnoise)
-            track?.audioTrack?.setProcessor(new DenoiseTrackProcessor());
+          if (this.#settings.rnnoise) {
+            track?.audioTrack?.setProcessor(
+              new DenoiseTrackProcessor({
+                workletCDNURL: CONFIGURATION.RNNOISE_WORKLET_CDN_URL,
+              }),
+            );
+          }
         });
     });
 
