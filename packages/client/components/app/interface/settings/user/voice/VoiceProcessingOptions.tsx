@@ -42,7 +42,7 @@ function NoiseSuppression() {
       return <Trans>Browser</Trans>;
     }
     if (state.voice.noiseSupression === "enhanced") {
-      return <Trans>Enhanced (RNNnoise)</Trans>;
+      return <Trans>Enhanced (RNNoise)</Trans>;
     }
   };
 
