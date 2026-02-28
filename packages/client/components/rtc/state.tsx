@@ -8,8 +8,7 @@ import {
   useContext,
 } from "solid-js";
 import { RoomContext } from "solid-livekit-components";
-
-import { Room } from "livekit-client";
+import { LocalAudioTrack, Room, RoomEvent, Track, VideoPreset } from 'livekit-client';
 import { Channel } from "stoat.js";
 
 import { useState } from "@revolt/state";
@@ -27,94 +26,145 @@ type State =
   | "RECONNECTING";
 
 class Voice {
-  #settings: VoiceSettings;
+  settings: VoiceSettings;
 
   channel: Accessor<Channel | undefined>;
-  #setChannel: Setter<Channel | undefined>;
+  setChannel: Setter<Channel | undefined>;
 
   room: Accessor<Room | undefined>;
-  #setRoom: Setter<Room | undefined>;
+  setRoom: Setter<Room | undefined>;
 
   state: Accessor<State>;
-  #setState: Setter<State>;
+  setState: Setter<State>;
 
   deafen: Accessor<boolean>;
-  #setDeafen: Setter<boolean>;
+  setDeafen: Setter<boolean>;
 
   microphone: Accessor<boolean>;
-  #setMicrophone: Setter<boolean>;
+  setMicrophone: Setter<boolean>;
 
   video: Accessor<boolean>;
-  #setVideo: Setter<boolean>;
+  setVideo: Setter<boolean>;
 
   screenshare: Accessor<boolean>;
-  #setScreenshare: Setter<boolean>;
+  setScreenshare: Setter<boolean>;
 
   constructor(voiceSettings: VoiceSettings) {
-    this.#settings = voiceSettings;
+    this.settings = voiceSettings;
 
     const [channel, setChannel] = createSignal<Channel>();
     this.channel = channel;
-    this.#setChannel = setChannel;
+    this.setChannel = setChannel;
 
     const [room, setRoom] = createSignal<Room>();
     this.room = room;
-    this.#setRoom = setRoom;
+    this.setRoom = setRoom;
 
     const [state, setState] = createSignal<State>("READY");
     this.state = state;
-    this.#setState = setState;
+    this.setState = setState;
 
     const [deafen, setDeafen] = createSignal<boolean>(false);
     this.deafen = deafen;
-    this.#setDeafen = setDeafen;
+    this.setDeafen = setDeafen;
 
     const [microphone, setMicrophone] = createSignal(false);
     this.microphone = microphone;
-    this.#setMicrophone = setMicrophone;
+    this.setMicrophone = setMicrophone;
 
     const [video, setVideo] = createSignal(false);
     this.video = video;
-    this.#setVideo = setVideo;
+    this.setVideo = setVideo;
 
     const [screenshare, setScreenshare] = createSignal(false);
     this.screenshare = screenshare;
-    this.#setScreenshare = setScreenshare;
+    this.setScreenshare = setScreenshare;
   }
 
   async connect(channel: Channel, auth?: { url: string; token: string }) {
     this.disconnect();
 
     const room = new Room({
+      webAudioMix: true,
       audioCaptureDefaults: {
-        deviceId: this.#settings.preferredAudioInputDevice,
-        echoCancellation: this.#settings.echoCancellation,
-        noiseSuppression: this.#settings.noiseSupression,
+        deviceId: this.settings.preferredAudioInputDevice,
+        echoCancellation: false,
+        noiseSuppression: false,
+        voiceIsolation: false,
+      },
+      videoCaptureDefaults: {
+        resolution: {
+          width: 1920,
+          height: 1080,
+          frameRate: 30,
+        },
+      },
+      publishDefaults: {
+        screenShareEncoding: {
+          maxBitrate: 8_000_000,
+          maxFramerate: 60,
+          priority: 'high',
+        },
+        screenShareSimulcastLayers: [
+          new VideoPreset({
+            width: 1280,
+            height: 720,
+            maxBitrate: 2_000_000,
+            maxFramerate: 30,
+            priority: 'low',
+          }),
+          new VideoPreset({
+            width: 1920,
+            height: 1080,
+            maxBitrate: 5_500_000,
+            maxFramerate: 60,
+            priority: 'medium',
+          }),
+          new VideoPreset({
+            width: 2560,
+            height: 1440,
+            maxBitrate: 8_000_000,
+            maxFramerate: 60,
+            priority: 'high',
+          }),
+        ],
+        audioPreset: { maxBitrate: 256_000, },
+        dtx: false,
+        red: true,
       },
       audioOutput: {
-        deviceId: this.#settings.preferredAudioOutputDevice,
+        deviceId: this.settings.preferredAudioOutputDevice,
       },
     });
 
-    batch(() => {
-      this.#setRoom(room);
-      this.#setChannel(channel);
-      this.#setState("CONNECTING");
+    room.on(RoomEvent.LocalTrackPublished, async (trackPublication) => {
+      if (
+          trackPublication.source === Track.Source.Microphone &&
+          trackPublication.track instanceof LocalAudioTrack
+        ) {
+        console.log('Krisp added');
+      }
+    });
 
-      this.#setMicrophone(false);
-      this.#setDeafen(false);
-      this.#setVideo(false);
-      this.#setScreenshare(false);
+    batch(() => {
+      this.setRoom(room);
+      this.setChannel(channel);
+      this.setState("CONNECTING");
+
+      this.setMicrophone(false);
+      this.setDeafen(false);
+      this.setVideo(false);
+      this.setScreenshare(false);
 
       if (this.speakingPermission)
         room.localParticipant
           .setMicrophoneEnabled(true)
-          .then((track) => this.#setMicrophone(typeof track !== "undefined"));
+          .then((track) => this.setMicrophone(typeof track !== "undefined"));
     });
 
-    room.addListener("connected", () => this.#setState("CONNECTED"));
+    room.addListener("connected", () => this.setState("CONNECTED"));
 
-    room.addListener("disconnected", () => this.#setState("DISCONNECTED"));
+    room.addListener("disconnected", () => this.setState("DISCONNECTED"));
 
     if (!auth) {
       auth = await channel.joinCall("worldwide");
@@ -133,14 +183,14 @@ class Voice {
     room.disconnect();
 
     batch(() => {
-      this.#setState("READY");
-      this.#setRoom(undefined);
-      this.#setChannel(undefined);
+      this.setState("READY");
+      this.setRoom(undefined);
+      this.setChannel(undefined);
     });
   }
 
   async toggleDeafen() {
-    this.#setDeafen((s) => !s);
+    this.setDeafen((s) => !s);
   }
 
   async toggleMute() {
@@ -150,7 +200,7 @@ class Voice {
       !room.localParticipant.isMicrophoneEnabled,
     );
 
-    this.#setMicrophone(room.localParticipant.isMicrophoneEnabled);
+    this.setMicrophone(room.localParticipant.isMicrophoneEnabled);
   }
 
   async toggleCamera() {
@@ -160,7 +210,7 @@ class Voice {
       !room.localParticipant.isCameraEnabled,
     );
 
-    this.#setVideo(room.localParticipant.isCameraEnabled);
+    this.setVideo(room.localParticipant.isCameraEnabled);
   }
 
   async toggleScreenshare() {
@@ -168,9 +218,23 @@ class Voice {
     if (!room) throw "invalid state";
     await room.localParticipant.setScreenShareEnabled(
       !room.localParticipant.isScreenShareEnabled,
+      {
+        audio: {
+          echoCancellation: false,
+          autoGainControl: false,
+          voiceIsolation:false,
+          noiseSuppression: false,
+        },
+        resolution: {
+          width: 2560,
+          height: 1440,
+          frameRate: 30,
+        },
+        contentHint: 'motion',
+      },
     );
 
-    this.#setScreenshare(room.localParticipant.isScreenShareEnabled);
+    this.setScreenshare(room.localParticipant.isScreenShareEnabled);
   }
 
   getConnectedUser(userId: string) {
