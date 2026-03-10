@@ -111,6 +111,7 @@ class Voice {
         deviceId: this.#settings.preferredAudioInputDevice,
         echoCancellation: this.#settings.echoCancellation,
         noiseSuppression: this.#settings.noiseSupression === "browser",
+        autoGainControl: this.#settings.autoGainControl,
         voiceIsolation: false,
         channelCount: 1,
       },
