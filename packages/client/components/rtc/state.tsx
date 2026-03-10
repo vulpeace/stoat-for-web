@@ -106,10 +106,53 @@ class Voice {
     this.disconnect();
 
     const room = new Room({
+      dynacast: true,
       audioCaptureDefaults: {
         deviceId: this.#settings.preferredAudioInputDevice,
         echoCancellation: this.#settings.echoCancellation,
         noiseSuppression: this.#settings.noiseSupression === "browser",
+        voiceIsolation: false,
+        channelCount: 1,
+      },
+      videoCaptureDefaults: {
+        resolution: {
+          width: 1920,
+          height: 1080,
+          frameRate: 30,
+        },
+      },
+      publishDefaults: {
+        screenShareEncoding: {
+          maxBitrate: 10_000_000,
+          maxFramerate: 60,
+          priority: 'high',
+        },
+        screenShareSimulcastLayers: [
+          new VideoPreset({
+            width: 1280,
+            height: 720,
+            maxBitrate: 2_000_000,
+            maxFramerate: 30,
+            priority: 'low',
+          }),
+          new VideoPreset({
+            width: 1920,
+            height: 1080,
+            maxBitrate: 5_500_000,
+            maxFramerate: 60,
+            priority: 'medium',
+          }),
+          new VideoPreset({
+            width: window.screen.width * window.devicePixelRatio,
+            height: window.screen.height * window.devicePixelRatio,
+            maxBitrate: 10_000_000,
+            maxFramerate: 60,
+            priority: 'high',
+          }),
+        ],
+        audioPreset: { maxBitrate: 256_000, },
+        dtx: true,
+        red: true,
       },
       audioOutput: {
         deviceId: this.#settings.preferredAudioOutputDevice,
@@ -196,7 +239,22 @@ class Voice {
     if (!room) throw "invalid state";
     await room.localParticipant.setScreenShareEnabled(
       !room.localParticipant.isScreenShareEnabled,
-      { audio: true },
+      {
+        audio: {
+          channelCount: 2,
+          echoCancellation: false,
+          autoGainControl: false,
+          voiceIsolation:false,
+          noiseSuppression: false,
+        },
+        resolution: {
+          width: window.screen.width * window.devicePixelRatio,
+          height: window.screen.height * window.devicePixelRatio,
+          frameRate: 30,
+        },
+        contentHint: 'motion',
+        systemAudio: 'include',
+      },
     );
 
     this.#setScreenshare(room.localParticipant.isScreenShareEnabled);
