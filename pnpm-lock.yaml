@@ -222,8 +222,8 @@ importers:
         specifier: ^2.13.0
         version: 2.15.13(@types/dom-mediacapture-record@1.0.22)
       livekit-rnnoise-processor:
-        specifier: ^2.0.0
-        version: 2.0.0
+        specifier: 1.1.3
+        version: 1.1.3
       localforage:
         specifier: ^1.10.0
         version: 1.10.0
@@ -5450,8 +5450,8 @@ packages:
     peerDependencies:
       '@types/dom-mediacapture-record': ^1
 
-  livekit-rnnoise-processor@2.0.0:
-    resolution: {integrity: sha512-b7r1DzB7ek+3fmc4ccPYeVjV14QVl86aTyj7A9qXIzsGiR6DTNhctQEk5DnlqMxVp7hdG5WBm4A9FHUp4k9jTg==}
+  livekit-rnnoise-processor@1.1.3:
+    resolution: {integrity: sha512-mh1eCz2RGslLZ8vz25pMB76uFpee8QDJS1+3n1xPG3xPHjmlPpbxfTBCYLhzLZzt8ofdYGO53f1O5tHwuFhrJQ==}
 
   lnk@1.1.0:
     resolution: {integrity: sha512-m3q+8W+stYiJYCBwefzrU+inN9h2KxofWuxhNH1iS+MdG9MIKfDpBtbmmIKstVwussx48PXALwonyzuzZUXjQQ==}
@@ -8137,7 +8137,7 @@ snapshots:
   '@babel/plugin-transform-modules-commonjs@7.27.1(@babel/core@7.27.1)':
     dependencies:
       '@babel/core': 7.27.1
-      '@babel/helper-module-transforms': 7.27.1(@babel/core@7.27.1)
+      '@babel/helper-module-transforms': 7.28.3(@babel/core@7.27.1)
       '@babel/helper-plugin-utils': 7.27.1
     transitivePeerDependencies:
       - supports-color
@@ -13050,7 +13050,7 @@ snapshots:
       typed-emitter: 2.1.0
       webrtc-adapter: 9.0.3
 
-  livekit-rnnoise-processor@2.0.0: {}
+  livekit-rnnoise-processor@1.1.3: {}
 
   lnk@1.1.0:
     dependencies:
