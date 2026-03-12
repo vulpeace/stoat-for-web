@@ -9,7 +9,7 @@ import {
 } from "solid-js";
 import { RoomContext } from "solid-livekit-components";
 
-import { Room } from "livekit-client";
+import { Room, VideoPreset } from "livekit-client";
 import { DenoiseTrackProcessor } from "livekit-rnnoise-processor";
 import { Channel } from "stoat.js";
 
@@ -140,18 +140,18 @@ class Voice {
             width: 1920,
             height: 1080,
             maxBitrate: 5_500_000,
-            maxFramerate: 60,
+            maxFramerate: 30,
             priority: 'medium',
           }),
           new VideoPreset({
             width: window.screen.width * window.devicePixelRatio,
             height: window.screen.height * window.devicePixelRatio,
             maxBitrate: 10_000_000,
-            maxFramerate: 60,
+            maxFramerate: 30,
             priority: 'high',
           }),
         ],
-        audioPreset: { maxBitrate: 256_000, },
+        audioPreset: { maxBitrate: 192_000, },
         dtx: true,
         red: true,
       },
